@@ -3,11 +3,11 @@ import { useState, useRef, useEffect } from "react";
 const API_BASE = "http://localhost:5000/api/agent";
 
 const STEP_ICONS = {
-  thinking:    "🧠",
-  tool_call:   "⚡",
-  tool_result: "📦",
-  answer:      "✅",
-  error:       "❌",
+  thinking:    "ð§ ",
+  tool_call:   "â¡",
+  tool_result: "ð¦",
+  answer:      "â",
+  error:       "â",
 };
 
 const STEP_COLORS = {
@@ -107,7 +107,7 @@ export default function App() {
       <header style={styles.header}>
         <div style={styles.headerInner}>
           <div style={styles.logo}>
-            <span style={styles.logoIcon}>🛒</span>
+            <span style={styles.logoIcon}>ð</span>
             <div>
               <div style={styles.logoTitle}>PRICE HUNTER</div>
               <div style={styles.logoSub}>Agentic AI · OpenAI / Claude · C# .NET 8 · React</div>
