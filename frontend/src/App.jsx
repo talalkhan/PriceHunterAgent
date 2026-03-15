@@ -3,11 +3,11 @@ import { useState, useRef, useEffect } from "react";
 const API_BASE = "http://localhost:5000/api/agent";
 
 const STEP_ICONS = {
-  thinking:    "ð§ ",
-  tool_call:   "â¡",
-  tool_result: "ð¦",
-  answer:      "â",
-  error:       "â",
+  thinking:    "🧠",
+  tool_call:   "⚡",
+  tool_result: "📦",
+  answer:      "✅",
+  error:       "❌",
 };
 
 const STEP_COLORS = {
@@ -107,7 +107,7 @@ export default function App() {
       <header style={styles.header}>
         <div style={styles.headerInner}>
           <div style={styles.logo}>
-            <span style={styles.logoIcon}>ð</span>
+            <span style={styles.logoIcon}>🛒</span>
             <div>
               <div style={styles.logoTitle}>PRICE HUNTER</div>
               <div style={styles.logoSub}>Agentic AI · OpenAI / Claude · C# .NET 8 · React</div>
@@ -119,3 +119,358 @@ export default function App() {
 
       {/* Main content */}
       <main style={styles.main}>
+
+        {/* Search box */}
+        <section style={styles.searchSection}>
+          <p style={styles.tagline}>
+            Drop a product name. Watch the AI agent hunt across stores,<br />
+            compare prices, find coupons — all in real time.
+          </p>
+          <div style={styles.searchRow}>
+            <input
+              ref={inputRef}
+              style={styles.input}
+              value={product}
+              onChange={e => setProduct(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="e.g. Sony WH-1000XM5 headphones"
+              disabled={running}
+              autoFocus
+            />
+            <button
+              style={{ ...styles.btn, ...(running ? styles.btnDisabled : {}) }}
+              onClick={handleSearch}
+              disabled={running}
+            >
+              {running ? <><Spinner /> HUNTING...</> : "HUNT PRICES →"}
+            </button>
+          </div>
+
+          {/* Quick examples */}
+          {!running && !steps.length && (
+            <div style={styles.examples}>
+              {["Sony WH-1000XM5", "MacBook Air M3", "iPhone 16 Pro", "Nintendo Switch 2"].map(ex => (
+                <button
+                  key={ex}
+                  style={styles.exampleChip}
+                  onClick={() => { setProduct(ex); setTimeout(handleSearch, 50); }}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Agent steps live feed */}
+        {steps.length > 0 && (
+          <section style={styles.stepsSection}>
+            <div style={styles.stepsHeader}>
+              <span style={styles.stepsTitle}>AGENT ACTIVITY LOG</span>
+              {running && <PulseDot />}
+            </div>
+            <div style={styles.stepsList}>
+              {steps.map((step, i) => (
+                <StepCard key={i} step={step} index={i} />
+              ))}
+              <div ref={bottomRef} />
+            </div>
+          </section>
+        )}
+
+        {/* Price report */}
+        {report && <PriceReportCard report={report} />}
+
+        {/* Reset */}
+        {done && (
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <button style={styles.resetBtn} onClick={handleReset}>
+              ↺ Search Another Product
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <span>Built by <strong>Talal Khan</strong> · </span>
+        <a href="https://github.com/mrtalalkhan/price-hunter-agent" style={styles.link} target="_blank" rel="noreferrer">
+          GitHub ↗
+        </a>
+        <span> · </span>
+        <a href="https://linkedin.com/in/mrtalalkhan" style={styles.link} target="_blank" rel="noreferrer">
+          LinkedIn ↗
+        </a>
+      </footer>
+    </div>
+  );
+}
+
+// ── Step Card ─────────────────────────────────────────────────────────────────
+function StepCard({ step, index }) {
+  const colors = STEP_COLORS[step.type] || STEP_COLORS.thinking;
+  const label  = STEP_LABELS[step.type] || step.type.toUpperCase();
+  const icon   = STEP_ICONS[step.type]  || "•";
+
+  return (
+    <div style={{
+      ...styles.stepCard,
+      background:   colors.bg,
+      borderColor:  colors.border,
+      animationDelay: `${index * 0.05}s`,
+    }}>
+      <div style={styles.stepMeta}>
+        <span style={{ ...styles.stepLabel, color: colors.label }}>
+          {icon} {label}
+        </span>
+        <span style={styles.stepNum}>#{index + 1}</span>
+      </div>
+      <div style={styles.stepMessage}>
+        {step.message}
+      </div>
+    </div>
+  );
+}
+
+// ── Price Report Card ─────────────────────────────────────────────────────────
+function PriceReportCard({ report }) {
+  const rec = report.recommendation;
+  const recColor = rec === "BUY_NOW" ? "#4bff4b" : rec === "WAIT" ? "#ffbb4b" : "#7b9cff";
+  const recLabel = rec === "BUY_NOW" ? "✅ BUY NOW" : rec === "WAIT" ? "⏳ WAIT FOR SALE" : "🔍 COMPARE MORE";
+
+  return (
+    <section style={styles.report}>
+      <div style={styles.reportHeader}>
+        <span style={styles.reportTitle}>PRICE REPORT</span>
+        <span style={{ ...styles.recBadge, color: recColor, borderColor: recColor }}>
+          {recLabel}
+        </span>
+      </div>
+
+      <div style={styles.reportProduct}>{report.product}</div>
+
+      {/* Price grid */}
+      <div style={styles.priceGrid}>
+        {(report.listings || []).map((item, i) => (
+          <a key={i} href={item.url} target="_blank" rel="noreferrer" style={{
+            ...styles.priceCard,
+            ...(item.isBestPrice ? styles.priceCardBest : {}),
+          }}>
+            {item.isBestPrice && <div style={styles.bestBadge}>BEST PRICE</div>}
+            <div style={styles.storeName}>{item.store}</div>
+            <div style={styles.storePrice}>{item.price}</div>
+            {item.notes && <div style={styles.storeNotes}>{item.notes}</div>}
+          </a>
+        ))}
+      </div>
+
+      {/* Best deal + coupon */}
+      <div style={styles.dealRow}>
+        {report.bestDeal && (
+          <div style={styles.dealBox}>
+            <span style={styles.dealLabel}>💰 BEST DEAL</span>
+            <span style={styles.dealValue}>{report.bestDeal}</span>
+          </div>
+        )}
+        {report.couponFound && (
+          <div style={styles.couponBox}>
+            <span style={styles.dealLabel}>🏷️ COUPON FOUND</span>
+            <span style={styles.couponCode}>{report.couponFound}</span>
+          </div>
+        )}
+      </div>
+
+      <div style={styles.searchedAt}>
+        Searched at {new Date(report.searchedAt).toLocaleTimeString()}
+      </div>
+    </section>
+  );
+}
+
+// ── Tiny components ───────────────────────────────────────────────────────────
+function Spinner() {
+  return <span style={styles.spinner}>⟳ </span>;
+}
+
+function PulseDot() {
+  return (
+    <span style={styles.pulseDot} />
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles = {
+  root: {
+    minHeight: "100vh",
+    background: "#0a0d14",
+    color: "#e0e6f0",
+    fontFamily: "'Space Mono', 'Courier New', monospace",
+    position: "relative",
+    overflowX: "hidden",
+  },
+  noise: {
+    position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",
+    opacity: 0.4,
+  },
+  header: {
+    position: "relative", zIndex: 1,
+    borderBottom: "1px solid #1e2535",
+    background: "rgba(10,13,20,0.95)",
+    backdropFilter: "blur(12px)",
+  },
+  headerInner: {
+    maxWidth: 900, margin: "0 auto", padding: "18px 24px",
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+  },
+  logo: { display: "flex", alignItems: "center", gap: 14 },
+  logoIcon: { fontSize: 32 },
+  logoTitle: {
+    fontSize: 20, fontWeight: 700, letterSpacing: "0.12em",
+    color: "#fff",
+  },
+  logoSub: { fontSize: 11, color: "#4a5a7a", letterSpacing: "0.08em", marginTop: 2 },
+  badge: {
+    fontSize: 11, fontWeight: 700, letterSpacing: "0.15em",
+    padding: "4px 10px", borderRadius: 4,
+    border: "1px solid #ff6b35", color: "#ff6b35",
+    background: "rgba(255,107,53,0.08)",
+  },
+  main: {
+    position: "relative", zIndex: 1,
+    maxWidth: 900, margin: "0 auto", padding: "48px 24px 80px",
+  },
+  searchSection: { marginBottom: 40 },
+  tagline: {
+    fontSize: 15, lineHeight: 1.7, color: "#8090b0",
+    marginBottom: 28, textAlign: "center",
+  },
+  searchRow: { display: "flex", gap: 12, marginBottom: 20 },
+  input: {
+    flex: 1, padding: "14px 18px",
+    background: "#111620", border: "1px solid #2a3550",
+    borderRadius: 8, color: "#e0e6f0",
+    fontFamily: "inherit", fontSize: 15,
+    outline: "none", transition: "border 0.2s",
+  },
+  btn: {
+    padding: "14px 24px",
+    background: "#ff6b35", border: "none", borderRadius: 8,
+    color: "#fff", fontFamily: "inherit",
+    fontSize: 13, fontWeight: 700, letterSpacing: "0.1em",
+    cursor: "pointer", whiteSpace: "nowrap",
+    display: "flex", alignItems: "center", gap: 6,
+    transition: "background 0.2s, transform 0.1s",
+  },
+  btnDisabled: { background: "#4a3020", cursor: "not-allowed" },
+  examples: { display: "flex", gap: 8, flexWrap: "wrap" },
+  exampleChip: {
+    padding: "6px 14px",
+    background: "transparent", border: "1px solid #2a3550",
+    borderRadius: 20, color: "#6a7a9a",
+    fontFamily: "inherit", fontSize: 12, cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  stepsSection: { marginBottom: 40 },
+  stepsHeader: {
+    display: "flex", alignItems: "center", gap: 10,
+    marginBottom: 16,
+  },
+  stepsTitle: {
+    fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", color: "#4a5a7a",
+  },
+  stepsList: { display: "flex", flexDirection: "column", gap: 8 },
+  stepCard: {
+    padding: "14px 18px", borderRadius: 8,
+    border: "1px solid",
+    animation: "fadeSlideIn 0.3s ease both",
+  },
+  stepMeta: { display: "flex", justifyContent: "space-between", marginBottom: 6 },
+  stepLabel: { fontSize: 11, fontWeight: 700, letterSpacing: "0.15em" },
+  stepNum:   { fontSize: 11, color: "#3a4a6a" },
+  stepMessage: {
+    fontSize: 13, lineHeight: 1.6, color: "#b0c0d8",
+    whiteSpace: "pre-wrap", wordBreak: "break-word",
+  },
+  report: {
+    background: "#0f1420", border: "1px solid #2a3a5a",
+    borderRadius: 12, padding: "28px 28px 24px",
+    marginBottom: 16,
+  },
+  reportHeader: {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  reportTitle: { fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", color: "#4a5a7a" },
+  recBadge: {
+    fontSize: 12, fontWeight: 700, letterSpacing: "0.1em",
+    padding: "4px 12px", borderRadius: 20, border: "1px solid",
+    background: "rgba(0,0,0,0.3)",
+  },
+  reportProduct: {
+    fontSize: 22, fontWeight: 700, color: "#fff",
+    marginBottom: 24, letterSpacing: "0.02em",
+  },
+  priceGrid: {
+    display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+    gap: 12, marginBottom: 20,
+  },
+  priceCard: {
+    padding: "16px", borderRadius: 8,
+    background: "#131825", border: "1px solid #1e2840",
+    textDecoration: "none", color: "inherit",
+    position: "relative", transition: "border 0.2s",
+    display: "block",
+  },
+  priceCardBest: {
+    background: "#0f1f0f", border: "1px solid #3b6b3b",
+  },
+  bestBadge: {
+    position: "absolute", top: -1, right: 8,
+    fontSize: 9, fontWeight: 700, letterSpacing: "0.15em",
+    background: "#3b6b3b", color: "#7bff9c",
+    padding: "2px 8px", borderRadius: "0 0 6px 6px",
+  },
+  storeName: { fontSize: 12, color: "#6a7a9a", marginBottom: 6, letterSpacing: "0.05em" },
+  storePrice: { fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 4 },
+  storeNotes: { fontSize: 11, color: "#4a6a4a" },
+  dealRow: { display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 },
+  dealBox: {
+    flex: 1, minWidth: 200, padding: "12px 16px",
+    background: "#0a1a0a", border: "1px solid #2a4a2a",
+    borderRadius: 8, display: "flex", flexDirection: "column", gap: 4,
+  },
+  couponBox: {
+    flex: 1, minWidth: 200, padding: "12px 16px",
+    background: "#1a0a1a", border: "1px solid #4a2a4a",
+    borderRadius: 8, display: "flex", flexDirection: "column", gap: 4,
+  },
+  dealLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", color: "#4a5a7a" },
+  dealValue: { fontSize: 14, color: "#7bff9c", fontWeight: 600 },
+  couponCode: {
+    fontSize: 16, color: "#ff9cff", fontWeight: 700,
+    letterSpacing: "0.1em", fontFamily: "monospace",
+  },
+  searchedAt: { fontSize: 11, color: "#2a3a5a", textAlign: "right" },
+  resetBtn: {
+    padding: "12px 28px",
+    background: "transparent", border: "1px solid #2a3550",
+    borderRadius: 8, color: "#6a7a9a",
+    fontFamily: "inherit", fontSize: 13, cursor: "pointer",
+    transition: "all 0.2s", letterSpacing: "0.08em",
+  },
+  footer: {
+    position: "relative", zIndex: 1, textAlign: "center",
+    padding: "24px", borderTop: "1px solid #1e2535",
+    fontSize: 12, color: "#3a4a6a",
+  },
+  link: { color: "#5a7aaa", textDecoration: "none" },
+  spinner: {
+    display: "inline-block",
+    animation: "spin 1s linear infinite",
+  },
+  pulseDot: {
+    display: "inline-block", width: 8, height: 8, borderRadius: "50%",
+    background: "#ff6b35", animation: "pulse 1s ease infinite",
+  },
+};
