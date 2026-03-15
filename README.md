@@ -1,10 +1,10 @@
 # PriceHunter Agent
 
-An agentic AI that autonomously finds the best price for any product across multiple stores — built with **C# .NET 8**, **React**, and **Claude AI**.
+An agentic AI that autonomously finds the best price for any product across multiple stores - built with **C# .NET 8**, **React**, and **OpenAI / Claude / Groq / Azure / Ollama** (swappable via one config line).
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square)](https://react.dev/)
-[![Claude](https://img.shields.io/badge/Claude-Sonnet-D97757?style=flat-square)](https://anthropic.com/)
+[![Providers](https://img.shields.io/badge/LLM-OpenAI%20%7C%20Claude%20%7C%20Groq%20%7C%20Azure%20%7C%20Ollama-orange?style=flat-square)](https://github.com/talalkhan/PriceHunterAgent)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -136,7 +136,7 @@ Open `backend/PriceHunterAgent/appsettings.json` and set your provider and key:
 
 ```json
 {
-  "LlmProvider": "Anthropic",
+  "LlmProvider": "OpenAI",
 
   "Anthropic": {
     "ApiKey": "sk-ant-your-key-here",
@@ -281,7 +281,7 @@ Claude will automatically decide when to use it.
 
 **Talal Khan** — Software Engineering Manager
 
-[LinkedIn](https://linkedin.com/in/mrtalalkhan) · [GitHub](https://github.com/talalkhan)
+[LinkedIn](https://linkedin.com/in/mrtalalkhan) · [GitHub](https://github.com/talalkhan) ·[Medium](https://medium.com/@talal_tk/i-built-an-agentic-ai-in-a-weekend-heres-exactly-how-it-works-923656f14db4)
 
 ---
 
