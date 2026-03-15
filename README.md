@@ -1,10 +1,10 @@
 # PriceHunter Agent
 
-An agentic AI that autonomously finds the best price for any product across multiple stores — built with **C# .NET 8**, **React**, and **Claude AI**.
+An agentic AI that autonomously finds the best price for any product across multiple stores â built with **C# .NET 8**, **React**, and **OpenAI / Claude / Groq / Azure / Ollama** (swappable via one config line).
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square)](https://react.dev/)
-[![Claude](https://img.shields.io/badge/Claude-Sonnet-D97757?style=flat-square)](https://anthropic.com/)
+[![Providers](https://img.shields.io/badge/LLM-OpenAI%20%7C%20Claude%20%7C%20Groq%20%7C%20Azure%20%7C%20Ollama-orange?style=flat-square)](https://github.com/talalkhan/PriceHunterAgent)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
@@ -16,7 +16,7 @@ Type any product name and the agent autonomously:
 1. **Searches** Google Shopping and major retailers (Amazon, Walmart, Best Buy, Target, B&H, and more)
 2. **Fetches** detailed pricing, stock levels, and shipping details from the top results
 3. **Hunts coupons** at the best-priced store to stack additional savings
-4. **Delivers a recommendation** — Buy Now, Wait for Sale, or Compare More — with full reasoning
+4. **Delivers a recommendation** â Buy Now, Wait for Sale, or Compare More â with full reasoning
 
 Every reasoning step streams to the UI in real time so you can watch the agent think and act.
 
@@ -24,61 +24,61 @@ Every reasoning step streams to the UI in real time so you can watch the agent t
 
 ## What makes it agentic
 
-Most AI apps are glorified chatbots — you ask, they answer in one shot.
+Most AI apps are glorified chatbots â you ask, they answer in one shot.
 
-This is different. The agent uses the **ReAct pattern** (Reason → Act → Observe → Repeat):
+This is different. The agent uses the **ReAct pattern** (Reason â Act â Observe â Repeat):
 
 ```
 User: "Sony WH-1000XM5 headphones"
 
-Agent: 🧠 I need to search for prices first...
-       ⚡ search_prices("Sony WH-1000XM5 price buy")
-       📦 Results: Walmart $239.99, Amazon $249.99, Best Buy $279.99...
-       🧠 Walmart looks cheapest. Let me verify stock and shipping...
-       ⚡ fetch_store_price("walmart.com/...", "Walmart")
-       📦 Price: $239.99 · 8% off · Limited stock · Free 2-day shipping
-       🧠 Let me check for coupons to stack on top...
-       ⚡ find_coupons("Walmart", "Sony WH-1000XM5")
-       📦 SAVE10 = additional 10% off
-       🧠 I have enough data. Final answer...
-       ✅ Buy at Walmart with SAVE10 → ~$215.99
+Agent: ð§  I need to search for prices first...
+       â¡ search_prices("Sony WH-1000XM5 price buy")
+       ð¦ Results: Walmart $239.99, Amazon $249.99, Best Buy $279.99...
+       ð§  Walmart looks cheapest. Let me verify stock and shipping...
+       â¡ fetch_store_price("walmart.com/...", "Walmart")
+       ð¦ Price: $239.99 Â· 8% off Â· Limited stock Â· Free 2-day shipping
+       ð§  Let me check for coupons to stack on top...
+       â¡ find_coupons("Walmart", "Sony WH-1000XM5")
+       ð¦ SAVE10 = additional 10% off
+       ð§  I have enough data. Final answer...
+       â Buy at Walmart with SAVE10 â ~$215.99
 ```
 
-Claude **decides** which tools to call, **sequences** them intelligently, and produces a structured recommendation — without you directing it step by step.
+Claude **decides** which tools to call, **sequences** them intelligently, and produces a structured recommendation â without you directing it step by step.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                  React Frontend                  │
-│     Vite · Inter UI · Live SSE step feed        │
-└────────────────────┬────────────────────────────┘
-                     │ Server-Sent Events (SSE)
-┌────────────────────▼────────────────────────────┐
-│          ASP.NET Core Web API (.NET 8)           │
-│                                                  │
-│   PriceHunterAgentService                        │
-│   └── IAsyncEnumerable<AgentStep>                │
-│       ReAct loop: Think → Act → Observe          │
-│                                                  │
-│   Tools:                                         │
-│   ├── WebSearchTool     (SerpApi / demo mode)    │
-│   ├── PriceFetchTool    (store price details)    │
-│   └── CouponSearchTool  (coupon lookup)          │
-│                                                  │
-│   Providers (swap via appsettings.json):         │
-│   ├── Anthropic  (Claude Sonnet)                 │
-│   ├── OpenAI     (GPT-4o / GPT-4o-mini)         │
-│   ├── Groq       (Llama 3.3 70B — free tier)    │
-│   ├── AzureOpenAI                                │
-│   └── Ollama     (local models)                  │
-└────────────────────┬────────────────────────────┘
-                     │ HTTPS
-┌────────────────────▼────────────────────────────┐
-│         Anthropic / OpenAI / Groq API            │
-└─────────────────────────────────────────────────┘
+âââââââââââââââââââââââââââââââââââââââââââââââââââ
+â                  React Frontend                  â
+â     Vite Â· Inter UI Â· Live SSE step feed        â
+ââââââââââââââââââââââ¬âââââââââââââââââââââââââââââ
+                     â Server-Sent Events (SSE)
+ââââââââââââââââââââââ¼âââââââââââââââââââââââââââââ
+â          ASP.NET Core Web API (.NET 8)           â
+â                                                  â
+â   PriceHunterAgentService                        â
+â   âââ IAsyncEnumerable<AgentStep>                â
+â       ReAct loop: Think â Act â Observe          â
+â                                                  â
+â   Tools:                                         â
+â   âââ WebSearchTool     (SerpApi / demo mode)    â
+â   âââ PriceFetchTool    (store price details)    â
+â   âââ CouponSearchTool  (coupon lookup)          â
+â                                                  â
+â   Providers (swap via appsettings.json):         â
+â   âââ Anthropic  (Claude Sonnet)                 â
+â   âââ OpenAI     (GPT-4o / GPT-4o-mini)         â
+â   âââ Groq       (Llama 3.3 70B â free tier)    â
+â   âââ AzureOpenAI                                â
+â   âââ Ollama     (local models)                  â
+ââââââââââââââââââââââ¬âââââââââââââââââââââââââââââ
+                     â HTTPS
+ââââââââââââââââââââââ¼âââââââââââââââââââââââââââââ
+â         Anthropic / OpenAI / Groq API            â
+âââââââââââââââââââââââââââââââââââââââââââââââââââ
 ```
 
 ---
@@ -87,27 +87,27 @@ Claude **decides** which tools to call, **sequences** them intelligently, and pr
 
 ```
 PriceHunterAgent/
-├── backend/
-│   └── PriceHunterAgent/
-│       ├── Agent/
-│       │   ├── PriceHunterAgentService.cs   ← Core ReAct loop
-│       │   ├── Models/AgentModels.cs        ← All data models
-│       │   └── Tools/
-│       │       ├── WebSearchTool.cs         ← SerpApi + demo fallback
-│       │       └── PriceTools.cs            ← Price fetch & coupon search
-│       ├── Controllers/AgentController.cs   ← SSE streaming endpoint
-│       ├── Providers/
-│       │   ├── ILlmProvider.cs              ← Provider abstraction
-│       │   ├── AnthropicProvider.cs
-│       │   ├── OpenAiCompatibleProvider.cs  ← OpenAI, Groq, Azure, Ollama
-│       │   └── LlmProviderFactory.cs
-│       ├── Program.cs                       ← Startup + DI
-│       └── appsettings.json                 ← API keys + provider config
-└── frontend/
-    └── src/
-        ├── App.jsx                          ← UI + SSE consumer
-        ├── index.css
-        └── main.jsx
+âââ backend/
+â   âââ PriceHunterAgent/
+â       âââ Agent/
+â       â   âââ PriceHunterAgentService.cs   â Core ReAct loop
+â       â   âââ Models/AgentModels.cs        â All data models
+â       â   âââ Tools/
+â       â       âââ WebSearchTool.cs         â SerpApi + demo fallback
+â       â       âââ PriceTools.cs            â Price fetch & coupon search
+â       âââ Controllers/AgentController.cs   â SSE streaming endpoint
+â       âââ Providers/
+â       â   âââ ILlmProvider.cs              â Provider abstraction
+â       â   âââ AnthropicProvider.cs
+â       â   âââ OpenAiCompatibleProvider.cs  â OpenAI, Groq, Azure, Ollama
+â       â   âââ LlmProviderFactory.cs
+â       âââ Program.cs                       â Startup + DI
+â       âââ appsettings.json                 â API keys + provider config
+âââ frontend/
+    âââ src/
+        âââ App.jsx                          â UI + SSE consumer
+        âââ index.css
+        âââ main.jsx
 ```
 
 ---
@@ -119,7 +119,7 @@ PriceHunterAgent/
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Node.js 18+](https://nodejs.org/)
 - An API key from one of: [Anthropic](https://console.anthropic.com/), [OpenAI](https://platform.openai.com/), or [Groq](https://console.groq.com/) *(Groq has a free tier)*
-- [SerpApi key](https://serpapi.com/) *(optional — demo mode works without it)*
+- [SerpApi key](https://serpapi.com/) *(optional â demo mode works without it)*
 
 ---
 
@@ -136,7 +136,7 @@ Open `backend/PriceHunterAgent/appsettings.json` and set your provider and key:
 
 ```json
 {
-  "LlmProvider": "Anthropic",
+  "LlmProvider": "OpenAI",
 
   "Anthropic": {
     "ApiKey": "sk-ant-your-key-here",
@@ -149,11 +149,11 @@ Open `backend/PriceHunterAgent/appsettings.json` and set your provider and key:
 }
 ```
 
-**Provider options:** `Anthropic` · `OpenAI` · `Groq` · `AzureOpenAI` · `Ollama`
+**Provider options:** `Anthropic` Â· `OpenAI` Â· `Groq` Â· `AzureOpenAI` Â· `Ollama`
 
 > **Free option:** Set `"LlmProvider": "Groq"` and add a free Groq API key. Llama 3.3 70B works well.
 >
-> **No search key?** Leave `SerpApi.ApiKey` as `DEMO_MODE` — the agent runs with realistic simulated data.
+> **No search key?** Leave `SerpApi.ApiKey` as `DEMO_MODE` â the agent runs with realistic simulated data.
 
 ---
 
@@ -187,7 +187,7 @@ Navigate to **http://localhost:5173**, type any product name, and watch the agen
 
 ## How the code works
 
-### Agent loop — `PriceHunterAgentService.cs`
+### Agent loop â `PriceHunterAgentService.cs`
 
 ```csharp
 public async IAsyncEnumerable<AgentStep> RunAsync(string product)
@@ -200,21 +200,21 @@ public async IAsyncEnumerable<AgentStep> RunAsync(string product)
 
         if (response.IsToolCall)
         {
-            // Claude asked to use a tool — execute it in C# and feed result back
+            // Claude asked to use a tool â execute it in C# and feed result back
             var result = await ExecuteToolAsync(response.ToolCall);
             history.Add(toolResultMessage);
             yield return new AgentStep { Type = "tool_result", ... };
             continue;
         }
 
-        // Claude produced a final answer — done
+        // Claude produced a final answer â done
         yield return new AgentStep { Type = "answer", ... };
         yield break;
     }
 }
 ```
 
-### SSE streaming — `AgentController.cs`
+### SSE streaming â `AgentController.cs`
 
 ```csharp
 Response.Headers["Content-Type"] = "text/event-stream";
@@ -227,7 +227,7 @@ await foreach (var step in _agent.RunAsync(product, ct))
 }
 ```
 
-### React SSE consumer — `App.jsx`
+### React SSE consumer â `App.jsx`
 
 ```javascript
 const res = await fetch("/api/agent/search", { method: "POST", body: ... });
@@ -251,7 +251,7 @@ while (true) {
 3. Add a case in `ExecuteToolAsync()`
 4. Register the tool in `Program.cs`
 
-Claude will automatically decide when to use it.
+The model will automatically decide when to use it.
 
 ### Swap to a real search or scraping API
 
@@ -279,12 +279,12 @@ Claude will automatically decide when to use it.
 
 ## Author
 
-**Talal Khan** — Software Engineering Manager
+**Talal Khan** â Software Engineering Manager
 
-[LinkedIn](https://linkedin.com/in/mrtalalkhan) · [GitHub](https://github.com/talalkhan)
+[LinkedIn](https://linkedin.com/in/mrtalalkhan) Â· [GitHub](https://github.com/talalkhan)
 
 ---
 
 ## License
 
-MIT — use it, fork it, learn from it.
+MIT â use it, fork it, learn from it.
